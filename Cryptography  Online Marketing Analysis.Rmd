@@ -1,0 +1,215 @@
+---
+title: "IP"
+author: "Maureen Gatu"
+date: "26/08/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+memory.limit(size = 96000)
+```
+## Loading the Libraries
+```{r load-packages, include=FALSE}
+library(dplyr)
+library(magrittr)
+library(knitr)
+#install.packages("devtools")
+library(devtools)
+#install.packages("Hmisc")
+library(Hmisc)
+```
+
+# Loading the Data
+```{r}
+#setting up the enviroment
+getwd()
+
+#locating the dataset
+setwd("A:\\PROGRAMMING WITH R\\advert")
+
+#Loading the dataset
+
+advt <- read.csv('advertising.csv',sep = ',', header=TRUE)
+```
+## Preview the dataset
+```{r}
+#Preview the top of the dataset
+head(advt)
+```
+```{r}
+#Preview thr bottom of the dataset
+tail(advt)
+```
+
+## Geting information about the dataset
+```{r}
+#Size  of the dataset
+dim(advt)
+```
+Viewing the column names
+```{r}
+names(advt)
+```
+Checking the variables data types
+```{r}
+sapply(advt, class)
+```
+Checking the number of unique entries in each variable
+```{r}
+print(advt %>% summarise_all(n_distinct))
+```
+check the unique values in city
+```{r}
+
+```
+
+# Data Cleaning
+
+Change the TimeStamp variable to date type
+```{r}
+
+```
+
+Checking for duplicates
+```{r}
+#Checking the duplicates using duplicated.data.frame() function
+dim(advt)
+table(duplicated.data.frame(advt))
+print('The dataset has no duplicated records')
+```
+Check for misisng values
+```{r}
+print('Total size of our dataset')
+print(dim(advt))
+print('Number of row with missing entries')
+null <- advt[!complete.cases(advt),]          #Give total number of rows with missing values
+dim(null)
+print(' ')
+print('The dataset has no missing values')
+```
+Check for outliers using the boxplot
+```{r}
+#boxplot(advt$Daily.Time.Spent.on.Site,advt$Age,advt$Daily.Internet.Usage)
+#boxplot(advt$Area.Income)
+par(mfrow = c(2,2))
+for (i in 1:4){
+ boxplot(advt[,i], main = names(advt)[i], horizontal = TRUE) 
+}
+```
+          There seems to be only one outlier in the area.income variable.
+                        we view the outlier with using the min() 
+```{r}
+min(as.numeric(advt[,3]))
+                          #Since the outlier is in regards to income, we choose to retain it.
+
+``` 
+
+
+# Exploratory Data Analysis
+
+
+## Univariate Analysis
+
+Descriptive stattistics of the dataset
+```{r}
+summary(advt)
+```
+Data distribution 
+```{r}
+describe(advt)
+```
+
+```{r}
+par(mfrow = c(2,2))
+for (i in 1:4){
+  hist(advt[,i],main = names(advt)[i], xlab = NULL)
+  
+}
+```
+
+
+
+```{r}
+head(advt)
+```
+
+Barplot
+```{r}
+table(advt$Male)
+H <- table(advt$Male)
+barplot(H,  col = 'darkgreen')
+```
+Clicked on vs not clicked on ads
+```{r}
+par()
+table(advt$Clicked.on.Ad)
+ads <- table(advt$Clicked.on.Ad)
+barplot(ads,  col = 'darkgreen')
+```
+        175 ads were clicked on and 164 ads were not clicked on.
+
+Separate between ads that were clicked on(1) and those that were not.
+created a subset data of only ads that were clicked on to anlyze the target customers that click on the ads.
+```{r}
+clicked <- advt[advt$Clicked.on.Ad == 1,]
+par(mfrow = c(2,2))
+for (i in 1:4){
+  hist(clicked[,i],main = names(clicked)[i], xlab = NULL)
+  
+}
+```
+Ads not clicked on
+```{r}
+not_clicked <- advt[advt$Clicked.on.Ad == 0,]
+par(mfrow = c(2,2))
+for (i in 1:4){
+  hist(not_clicked[,i],main = names(not_clicked)[i], xlab = NULL)
+  
+}
+```
+Looking at the persons that clicked on the ad based on gender
+Males who clicked on the add
+```{r}
+Male <- clicked[clicked$Male == 1,]
+par(mfrow = c(2,2))
+for (i in 1:4){
+  hist(Male[,i],main = names(Male)[i], xlab = NULL)
+  
+}
+```
+Females that clicked on the ad
+```{r}
+Female <- clicked[clicked$Male == 0,]
+par(mfrow = c(2,2))
+for (i in 1:4){
+  hist(Female[,i],main = names(Female)[i], xlab = NULL)
+  
+}
+```
+##### Time Spent on Site
+```{r}
+#Sort dataframe based on time spent on site variable
+time_spent <- clicked[order(-clicked$Daily.Time.Spent.on.Site),]
+head(time_spent$Ad.Topic.Line)
+```
+These are the ad topic line clicked among the people that spent the most amount of time on the site
+```{r}
+tail(time_spent$Ad.Topic.Line)
+```
+These are the ad topics clicked by persons that spent the least time on the site.
+
+## Bivariate analysis
+#### Correlation coefficients
+```{r}
+num <- advt[,1:4]
+cor(num)
+```
+
+#### Scatter plots
+```{r}
+num <- advt[,1:4]
+pairs(num, pch = 19)
+```
+Daily time spent on site, area.income and daily internet usage are all positvely correlated to each other.
+Age has a negative correaltion to each of these three variable. The correlation between all variables is weak with the highest correlation beng between time spent on site and daily internet usage, with a correlation on 0.50.
+
